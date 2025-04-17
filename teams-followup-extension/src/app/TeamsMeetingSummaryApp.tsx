@@ -19,14 +19,28 @@ const TeamsMeetingSummaryApp = () => {
 		setSummary(data.summary);
 	};
 
-	const draftEmail = () => {
+	const openOutlookDraft = () => {
+		if (!summary) return;
+
 		loadOfficeJs(() => {
 			Office.context.mailbox.displayNewMessageForm({
-				toRecipients: [], // fill with attendee emails if available
-				subject: "Meeting Follow-Up",
-				htmlBody: summary,
+				toRecipients: [], // you can prefill with emails later
+				subject: "Follow-Up: Your Subject Here", // optionally pull from response.subject
+				htmlBody: summary.replace(/\n/g, "<br>"), // convert newlines to HTML
 			});
 		});
+	};
+
+	const copyToClipboard = () => {
+		if (!summary) return;
+		navigator.clipboard.writeText(summary).then(
+			() => {
+				alert("Summary copied to clipboard!");
+			},
+			(err) => {
+				console.error("Failed to copy text: ", err);
+			}
+		);
 	};
 
 	return (
@@ -51,7 +65,11 @@ const TeamsMeetingSummaryApp = () => {
 						}}>
 						{summary}
 					</div>
-					<button onClick={draftEmail}>Draft Outlook Email</button>
+					{typeof Office !== "undefined" && Office.context?.mailbox ? (
+						<button onClick={openOutlookDraft}>Open in Outlook</button>
+					) : (
+						<button onClick={copyToClipboard}>Copy Summary to Clipboard</button>
+					)}
 				</>
 			)}
 		</div>
